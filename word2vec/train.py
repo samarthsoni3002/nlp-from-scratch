@@ -3,6 +3,7 @@ from preprocessing import processing_batch, build_vocab, vocab_map
 from datasets_classes import SkipgramDataset, CbowDataset, cbow_collate
 from models import SkipgramModel, CbowModel
 
+import torch 
 from torch.utils.data import DataLoader
 from torch import nn 
 from torch.nn import functional as F
@@ -93,6 +94,20 @@ for epoch in range(num_epochs):
 
     
     
+model.eval()
+test_loss = 0
+
+with torch.no_grad():
+    
+    for batch in dataloader_test:
+        inputs, targets = batch[0], batch[1]
+        logits = model(inputs)
+        loss = loss_fn(logits, targets)
+        test_loss += loss.item()
+        
+avg_test_loss = test_loss / len(dataloader_test)
+print(f"Final Test Loss: {avg_test_loss:.4f}")
+
     
     
     
