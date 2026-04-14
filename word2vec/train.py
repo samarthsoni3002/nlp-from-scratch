@@ -2,6 +2,7 @@ from load_dataset import get_dataset
 from preprocessing import processing_batch, build_vocab, vocab_map
 from datasets_classes import SkipgramDataset, CbowDataset, cbow_collate
 from models import SkipgramModel, CbowModel
+from trainer import training_loop, testing_loop
 
 import torch 
 from torch.utils.data import DataLoader
@@ -57,56 +58,16 @@ elif(w2v_model == "cbow"):
     dataloader_test = DataLoader(dataset_test,batch_size=10,shuffle=True,collate_fn=cbow_collate)
     
     model = CbowModel(len(vocab),3,len(vocab))
+
     
     
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(),lr=0.01)
 
 
-for epoch in range(num_epochs):
+training_loop(model,dataloader_train,dataloader_val,num_epochs,loss_fn,optimizer)
+testing_loop(model,dataloader_test,loss_fn)
 
-    train_loss = 0
-
-    for pairs in dataloader_train:
-
-      logits = model(pairs[0])
-      loss = loss_fn(logits,pairs[1])
-      optimizer.zero_grad()
-      loss.backward()
-      optimizer.step()
-
-      train_loss += loss.item()
-    avg_train_loss = train_loss / len(dataloader_train)
-
-
-    model.eval()
-    val_loss = 0
-
-    for pairs in dataloader_val:
-      inputs, targets = pairs[0], pairs[1]
-      logits = model(inputs)
-      loss = loss_fn(logits,targets)
-      val_loss += loss.item()
-
-    avg_val_loss = val_loss/ len(dataloader_val)
-
-    print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
-
-    
-    
-model.eval()
-test_loss = 0
-
-with torch.no_grad():
-    
-    for batch in dataloader_test:
-        inputs, targets = batch[0], batch[1]
-        logits = model(inputs)
-        loss = loss_fn(logits, targets)
-        test_loss += loss.item()
-        
-avg_test_loss = test_loss / len(dataloader_test)
-print(f"Final Test Loss: {avg_test_loss:.4f}")
 
     
     
