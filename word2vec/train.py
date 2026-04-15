@@ -2,7 +2,7 @@ from load_dataset import get_dataset
 from preprocessing import processing_batch, build_vocab, vocab_map
 from datasets_classes import SkipgramDataset, CbowDataset, cbow_collate, cbow_collate_negative_sampling
 from models import SkipgramModel, SkipgramModelNegativeSampling, CbowModel, CbowModelNegativeSampling
-from trainer import training_loop, training_loop_negative_sampling_skipgram, training_loop_negative_sampling_cbow, testing_loop
+from trainer import training_loop, training_loop_negative_sampling_skipgram, training_loop_negative_sampling_cbow, testing_loop, testing_loop_negative_sampling_skipgram,testing_loop_negative_sampling_cbow
 from utils import negative_sampling_loss, build_noise_distribution
 
 
@@ -14,7 +14,7 @@ from torch import optim
 
 
 dataset_length = 1000
-w2v_model = "skip-gram"
+w2v_model = "cbow"
 negative_sampling = True 
 num_epochs = 1
 neg_samples = 5
@@ -61,6 +61,10 @@ if(w2v_model == "skip-gram"):
 
         training_loop_negative_sampling_skipgram(model,dataloader_train,dataloader_val,num_epochs,negative_sampling_loss,optimizer,neg_samples,build_noise_distribution,counter,vocab)
         
+        print("--- Testing With Negative Sampling ---")
+        
+        testing_loop_negative_sampling_skipgram(model, dataloader_test,negative_sampling_loss,neg_samples,build_noise_distribution,vocab,counter)
+        
     else: 
         
         model = SkipgramModel(len(vocab),5)
@@ -71,6 +75,9 @@ if(w2v_model == "skip-gram"):
         print("--- Training ---")
     
         training_loop(model,dataloader_train,dataloader_val,num_epochs,loss_fn,optimizer)
+        
+        print("--- Testing ---")
+        
         testing_loop(model,dataloader_test,loss_fn)
 
         
@@ -92,7 +99,7 @@ elif(w2v_model == "cbow"):
     
     if(negative_sampling):
         
-        print("--- Training With Negative Sampling ---")
+        
         
         dataloader_train = DataLoader(dataset_train,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate_negative_sampling(batch,counter, vocab))
         
@@ -104,12 +111,20 @@ elif(w2v_model == "cbow"):
         
         optimizer = optim.Adam(model.parameters(),lr=0.01)
         
+        print("--- Training With Negative Sampling ---")
+        
         training_loop_negative_sampling_cbow(model,dataloader_train, dataloader_val, num_epochs, negative_sampling_loss, optimizer)
+        
+        
+        print("--- Testing With Negative Sampling ---")
+        
+        
+        testing_loop_negative_sampling_cbow(model,dataloader_test,negative_sampling_loss)
         
         
     else:
         
-        print("--- Training ---")
+        
         
         dataloader_train = DataLoader(dataset_train,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate(batch,pad_id))
         
@@ -122,7 +137,14 @@ elif(w2v_model == "cbow"):
         loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(),lr=0.01)
         
+        
+        print("--- Training ---")
+        
         training_loop(model,dataloader_train,dataloader_val,num_epochs,loss_fn,optimizer)
+        
+        print("--- Testing ---")
+        
+        testing_loop(model,dataloader_test,loss_fn)
         
         
         

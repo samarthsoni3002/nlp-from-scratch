@@ -164,3 +164,43 @@ def testing_loop(model, test_dataloader, loss_fn):
     return avg_test_loss
   
 
+
+def testing_loop_negative_sampling_skipgram(model,dataloader,loss_fn,neg_samples,noise_dist,vocab,counter):
+
+  model.eval()
+  testing_loss = 0.0
+
+  probab = noise_dist(counter,vocab)
+
+  with torch.no_grad():
+    
+    for center_ids, pos_ids in dataloader:
+    
+      neg_ids = torch.tensor(sample_negative_words(pos_ids, neg_samples, probab))
+      pos_scores, neg_scores = model(center_ids, pos_ids, neg_ids)
+      loss = loss_fn(pos_scores, neg_scores) 
+      testing_loss += loss.item()
+                
+  avg_test_loss = testing_loss / len(dataloader)
+  print(f"Final Test Loss: {avg_test_loss}")
+
+  return avg_test_loss
+
+
+
+def testing_loop_negative_sampling_cbow(model,dataloader,loss_fn):
+
+  model.eval()
+  testing_loss = 0.0
+
+  with torch.no_grad():
+    
+    for context_ids, target_ids, neg_ids in dataloader:
+      pos_scores, neg_scores = model(context_ids, target_ids, neg_ids)
+      loss = loss_fn(pos_scores, neg_scores)
+      testing_loss += loss.item()
+                
+  avg_test_loss = testing_loss / len(dataloader)
+  print(f"Final Test Loss: {avg_test_loss}")
+
+  return avg_test_loss
