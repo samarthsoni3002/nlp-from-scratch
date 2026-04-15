@@ -19,6 +19,27 @@ class SkipgramModel(nn.Module):
     return logits 
 
 
+# Skip-gram Negative Sampling 
+
+class SkipgramModelNegativeSampling(nn.Module):
+
+  def __init__(self,vocab_size,embedding_dim):
+    super().__init__()
+    self.in_embedding = nn.Embedding(num_embeddings=vocab_size,embedding_dim=embedding_dim)
+    self.out_embedding = nn.Embedding(num_embeddings=vocab_size,embedding_dim=embedding_dim)
+
+  def forward(self,center_ids,pos_ids,neg_ids):
+
+    center_emb = self.in_embedding(center_ids)
+    pos_emb = self.out_embedding(pos_ids)
+    neg_emb = self.out_embedding(neg_ids)
+
+    pos_scores = torch.sum(center_emb*pos_emb, dim=1)
+    neg_scores = torch.sum(center_emb.unsqueeze(1)*neg_emb, dim=2)
+
+    return pos_scores, neg_scores
+
+
 # Cbow Model 
 
 class CbowModel(nn.Module):
