@@ -16,8 +16,9 @@ def training_loop(
         model.train()
         train_loss = 0.0
 
-        for inputs, targets in train_dataloader:
+        for pairs in train_dataloader:
             optimizer.zero_grad()
+            inputs, targets = pairs[0],pairs[1]
 
             logits = model(inputs)
             loss = loss_fn(logits, targets)
@@ -34,11 +35,13 @@ def training_loop(
         val_loss = 0.0
 
         with torch.no_grad():
-            for inputs, targets in val_dataloader:
-                logits = model(inputs)
-                loss = loss_fn(logits, targets)
+            for pairs in val_dataloader:
+              
+              inputs, targets = pairs[0], pairs[1]
+              logits = model(inputs)
+              loss = loss_fn(logits, targets)
 
-                val_loss += loss.item()
+              val_loss += loss.item()
 
         avg_val_loss = val_loss / len(val_dataloader)
         val_losses.append(avg_val_loss)
@@ -59,16 +62,20 @@ def training_loop_negative_sampling(model,
                                     loss_fn, 
                                     optimizer, 
                                     neg_samples, 
-                                    noise_dist):
+                                    noise_dist,
+                                    counter, 
+                                    vocab):
 
     for epoch in range(num_epochs):
         model.train()
         train_loss = 0.0
+        
+        probab = noise_dist(counter,vocab)
 
         for pairs in train_dataloader:
             center_ids, pos_ids = pairs[0], pairs[1]
 
-            neg_ids = sample_negative_words(pos_ids, neg_samples, noise_dist)
+            neg_ids = sample_negative_words(pos_ids, neg_samples, probab)
 
             pos_scores, neg_scores = model(center_ids, pos_ids, neg_ids)
             loss = loss_fn(pos_scores, neg_scores)
@@ -88,7 +95,7 @@ def training_loop_negative_sampling(model,
             for pairs in val_dataloader:
                 center_ids, pos_ids = pairs[0], pairs[1]
 
-                neg_ids = sample_negative_words(pos_ids, neg_samples, noise_dist)
+                neg_ids = sample_negative_words(pos_ids, neg_samples, probab)
 
                 pos_scores, neg_scores = model(center_ids, pos_ids, neg_ids)
                 loss = loss_fn(pos_scores, neg_scores)
@@ -106,11 +113,14 @@ def testing_loop(model, test_dataloader, loss_fn):
     test_loss = 0.0
 
     with torch.no_grad():
-        for inputs, targets in test_dataloader:
-            logits = model(inputs)
-            loss = loss_fn(logits, targets)
+        for pairs in test_dataloader:
+          
+          inputs, targets = pairs[0], pairs[1]
+          
+          logits = model(inputs)
+          loss = loss_fn(logits, targets)
 
-            test_loss += loss.item()
+          test_loss += loss.item()
 
     avg_test_loss = test_loss / len(test_dataloader)
     print(f"Final Test Loss: {avg_test_loss:.4f}")

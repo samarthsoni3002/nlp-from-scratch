@@ -70,7 +70,7 @@ class CbowDataset(Dataset):
         return self.cbow_pairs[index]
     
     
-def cbow_collate(batch):
+def cbow_collate(batch,pad_id):
     contexts = []
     targets = []
     lengths = []
@@ -81,7 +81,7 @@ def cbow_collate(batch):
         lengths.append(len(context_ids))
 
     max_len = max(lengths)
-    PAD_ID = len(vocab)
+    PAD_ID = pad_id
 
     padded_contexts = []
     for context_ids in contexts:
