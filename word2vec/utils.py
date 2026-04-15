@@ -32,3 +32,9 @@ def sample_negative_words(pos_ids, num_negatives, noise_dist):
     return torch.tensor(neg_ids, dtype=torch.long)
 
 
+def negative_sampling_loss(pos_scores, neg_scores):
+
+  pos_term = F.logsigmoid(pos_scores)
+  neg_term = F.logsigmoid(-neg_scores)
+
+  return -(pos_term + neg_term.sum(dim=1)).mean()
