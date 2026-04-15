@@ -71,9 +71,7 @@ elif(w2v_model == "cbow"):
         model = CbowModel(len(vocab),3,len(vocab))
     
     
-
-
-
+    
 if(negative_sampling):
     
     model = SkipgramModelNegativeSampling(len(vocab),3)
