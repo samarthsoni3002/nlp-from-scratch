@@ -1,5 +1,5 @@
 import torch
-
+from utils import sample_negative_words
 
 def training_loop(
     model,
@@ -52,6 +52,55 @@ def training_loop(
     return train_losses, val_losses
 
 
+def training_loop_negative_sampling(model,
+                                    train_dataloader,
+                                    val_dataloader, 
+                                    num_epochs, 
+                                    loss_fn, 
+                                    optimizer, 
+                                    neg_samples, 
+                                    noise_dist):
+
+    for epoch in range(num_epochs):
+        model.train()
+        train_loss = 0.0
+
+        for pairs in train_dataloader:
+            center_ids, pos_ids = pairs[0], pairs[1]
+
+            neg_ids = sample_negative_words(pos_ids, neg_samples, noise_dist)
+
+            pos_scores, neg_scores = model(center_ids, pos_ids, neg_ids)
+            loss = loss_fn(pos_scores, neg_scores)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item()
+
+        avg_train_loss = train_loss / len(train_dataloader)
+
+        model.eval()
+        val_loss = 0.0
+
+        with torch.no_grad():
+            for pairs in val_dataloader:
+                center_ids, pos_ids = pairs[0], pairs[1]
+
+                neg_ids = sample_negative_words(pos_ids, neg_samples, noise_dist)
+
+                pos_scores, neg_scores = model(center_ids, pos_ids, neg_ids)
+                loss = loss_fn(pos_scores, neg_scores)
+
+                val_loss += loss.item()
+
+        avg_val_loss = val_loss / len(val_dataloader)
+
+        print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
+
+
+
 def testing_loop(model, test_dataloader, loss_fn):
     model.eval()
     test_loss = 0.0
@@ -67,3 +116,5 @@ def testing_loop(model, test_dataloader, loss_fn):
     print(f"Final Test Loss: {avg_test_loss:.4f}")
 
     return avg_test_loss
+  
+
