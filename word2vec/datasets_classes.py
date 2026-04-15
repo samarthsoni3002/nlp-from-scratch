@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data import Dataset
+from utils import build_noise_distribution, sample_negative_words
 
 
 # Skip-gram Dataset 
@@ -93,3 +94,34 @@ def cbow_collate(batch,pad_id):
     lengths = torch.tensor(lengths, dtype=torch.long)
 
     return padded_contexts, targets, lengths
+
+
+# Cbow Collate Function for Negative Sampling 
+
+def cbow_collate_negative_sampling(batch, counter, vocab):
+    contexts = []
+    targets = []
+    neg_ids = []
+
+    probab = build_noise_distribution(counter, vocab)
+    PAD_ID = len(vocab)
+
+    for context_ids, target_id in batch:
+        contexts.append(context_ids)
+        targets.append(target_id)
+
+        negative_ids = sample_negative_words(target_id, 5, probab)[0]
+        neg_ids.append(negative_ids)
+
+    max_len = max(len(context_ids) for context_ids in contexts)
+
+    padded_contexts = []
+    for context_ids in contexts:
+        padded = context_ids + [PAD_ID] * (max_len - len(context_ids))
+        padded_contexts.append(padded)
+
+    padded_contexts = torch.tensor(padded_contexts, dtype=torch.long)
+    targets = torch.tensor(targets, dtype=torch.long)
+    neg_ids = torch.tensor(neg_ids, dtype=torch.long)
+
+    return padded_contexts, targets, neg_ids

@@ -15,21 +15,27 @@ def build_noise_distribution(counter, vocab):
     return probs
 
 
-def sample_negative_words(pos_ids, num_negatives, noise_dist):
-    neg_ids = []
+def sample_negative_words(pos_ids, num_neg_samples, noise_dist):
+    if isinstance(pos_ids, int):
+        pos_ids = [pos_ids]
+
+    neg_samples = []
 
     for pos_id in pos_ids:
+        if torch.is_tensor(pos_id):
+            pos_id = pos_id.item()
+
         curr_negs = []
 
-        while len(curr_negs) < num_negatives:
+        while len(curr_negs) < num_neg_samples:
             sampled = torch.multinomial(noise_dist, num_samples=1, replacement=True).item()
 
-            if sampled != pos_id.item():
+            if sampled != pos_id:
                 curr_negs.append(sampled)
 
-        neg_ids.append(curr_negs)
+        neg_samples.append(curr_negs)
 
-    return torch.tensor(neg_ids, dtype=torch.long)
+    return neg_samples
 
 
 def negative_sampling_loss(pos_scores, neg_scores):

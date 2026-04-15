@@ -70,7 +70,7 @@ class CbowModel(nn.Module):
 
 # CBOW Negative Sampling Model 
 
-class CbowModel(nn.Module):
+class CbowModelNegativeSampling(nn.Module):
 
   def __init__(self,vocab_size,embedding_dim,pad_id):
     super().__init__()
