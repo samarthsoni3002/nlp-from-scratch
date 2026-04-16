@@ -1,3 +1,4 @@
+import os
 from load_dataset import get_dataset
 from preprocessing import processing_batch, build_vocab, vocab_map
 from datasets_classes import SkipgramDataset, CbowDataset, cbow_collate, cbow_collate_negative_sampling
@@ -18,6 +19,9 @@ w2v_model = "cbow"
 negative_sampling = True 
 num_epochs = 1
 neg_samples = 5
+embedding_dim = 3
+
+os.makedirs("save", exist_ok=True)
 
 train_ds, val_ds, test_ds = get_dataset()
 
@@ -53,7 +57,7 @@ if(w2v_model == "skip-gram"):
     
     if(negative_sampling):
         
-        model = SkipgramModelNegativeSampling(len(vocab),3)
+        model = SkipgramModelNegativeSampling(len(vocab),embedding_dim)
 
         optimizer = optim.Adam(model.parameters(),lr=0.01)
 
@@ -65,9 +69,20 @@ if(w2v_model == "skip-gram"):
         
         testing_loop_negative_sampling_skipgram(model, dataloader_test,negative_sampling_loss,neg_samples,build_noise_distribution,vocab,counter)
         
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "word_to_id": vocab,
+                "id_to_word": id_to_word,
+                "vocab_size": len(vocab),
+                "embedding_dim": embedding_dim,
+            },
+            "./save/model_checkpoint_skipgram_ns.pt"
+        )
+        
     else: 
         
-        model = SkipgramModel(len(vocab),5)
+        model = SkipgramModel(len(vocab),embedding_dim)
         
         loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(),lr=0.01)
@@ -80,6 +95,16 @@ if(w2v_model == "skip-gram"):
         
         testing_loop(model,dataloader_test,loss_fn)
 
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "word_to_id": vocab,
+                "id_to_word": id_to_word,
+                "vocab_size": len(vocab),
+                "embedding_dim": embedding_dim
+            },
+            "./save/model_checkpoint_skipgram.pt"
+        )
         
 
     
@@ -99,15 +124,13 @@ elif(w2v_model == "cbow"):
     
     if(negative_sampling):
         
-        
-        
         dataloader_train = DataLoader(dataset_train,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate_negative_sampling(batch,counter, vocab))
         
         dataloader_val = DataLoader(dataset_val,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate_negative_sampling(batch,counter,vocab))
         
         dataloader_test = DataLoader(dataset_test,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate_negative_sampling(batch,counter,vocab))
         
-        model = CbowModelNegativeSampling(len(vocab),3,len(vocab))
+        model = CbowModelNegativeSampling(len(vocab),embedding_dim,len(vocab))
         
         optimizer = optim.Adam(model.parameters(),lr=0.01)
         
@@ -120,11 +143,21 @@ elif(w2v_model == "cbow"):
         
         
         testing_loop_negative_sampling_cbow(model,dataloader_test,negative_sampling_loss)
+ 
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "word_to_id": vocab,
+                "id_to_word": id_to_word,
+                "vocab_size": len(vocab),
+                "embedding_dim": embedding_dim,
+                "pad_id": len(vocab),
+            },
+            "./save/model_checkpoint_cbow_ns.pt"
+        )
         
         
     else:
-        
-        
         
         dataloader_train = DataLoader(dataset_train,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate(batch,pad_id))
         
@@ -132,7 +165,7 @@ elif(w2v_model == "cbow"):
         
         dataloader_test = DataLoader(dataset_test,batch_size=10,shuffle=True,collate_fn=lambda batch: cbow_collate(batch,pad_id))
         
-        model = CbowModel(len(vocab),3,len(vocab))
+        model = CbowModel(len(vocab),embedding_dim,len(vocab))
         
         loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(),lr=0.01)
@@ -146,7 +179,17 @@ elif(w2v_model == "cbow"):
         
         testing_loop(model,dataloader_test,loss_fn)
         
-        
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "word_to_id": vocab,
+                "id_to_word": id_to_word,
+                "vocab_size": len(vocab),
+                "embedding_dim": embedding_dim,
+                "pad_id": len(vocab),
+            },
+            "./save/model_checkpoint_cbow.pt"
+        )       
         
         
         
