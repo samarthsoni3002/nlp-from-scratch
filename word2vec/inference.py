@@ -12,7 +12,6 @@ model_name = "cbow-ns"
 
 word = "human"
 
-
 checkpoint_paths = {
     "skip-gram": "./save/model_checkpoint_skipgram.pt",
     "skip-gram-ns": "./save/model_checkpoint_skipgram_ns.pt",
