@@ -29,6 +29,7 @@ This repository currently contains a dedicated `word2vec/` folder with a from-sc
 nlp-paper-implementations/
 ├── word2vec/
 └── README.md
+```
 
 ## Why This Repository Exists
 
