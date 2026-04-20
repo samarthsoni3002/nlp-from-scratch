@@ -48,9 +48,9 @@ glove_dataloader_val = DataLoader(glove_dataset_val,batch_size=10,shuffle=True)
 glove_dataset_test = GloveDataset(vocab,conv_data_test,2)
 glove_dataloader_test = DataLoader(glove_dataset_test,batch_size=10,shuffle=True)
 
-glove_model = GloveModel(len(vocab),10)
+glove_model = GloveModel(len(vocab),embedding_dim)
 
-optimizer = torch.optim.Adagrad(glove_model.parameters(),0.01)
+optimizer = torch.optim.Adagrad(glove_model.parameters(),0.05)
 
 training_loop(glove_model,glove_dataloader_train,glove_dataloader_val,2,loss_fxn,optimizer,weight_function)
 
