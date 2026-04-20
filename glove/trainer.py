@@ -1,5 +1,4 @@
 import torch 
-from utils import weight_function
 
 def training_loop(model, train_dataloader, val_dataloader, num_epochs, loss_fn, optimizer,weight_function):
     for epoch in range(num_epochs):
@@ -36,7 +35,7 @@ def training_loop(model, train_dataloader, val_dataloader, num_epochs, loss_fn, 
         print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
         
         
-def testing_loop(model, test_dataloader, loss_fn):
+def testing_loop(model, test_dataloader, loss_fn,weight_function):
     model.eval()
     test_loss = 0.0
 
