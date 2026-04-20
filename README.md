@@ -3,6 +3,7 @@
 This repository is where I implement core **NLP papers and foundational ideas from scratch** to understand both the theory and the engineering behind them.
 
 The aim is to break papers down into:
+
 - preprocessing
 - dataset construction
 - model implementation
@@ -15,11 +16,12 @@ The aim is to break papers down into:
 
 ## Current Status
 
-At the moment, the main implemented project in this repository is:
+At the moment, this repository contains the following implementations:
 
 - **Word2Vec**
+- **GloVe**
 
-This repository currently contains a dedicated `word2vec/` folder with a from-scratch PyTorch implementation of multiple Word2Vec variants.
+Each implementation is kept in its own dedicated folder and is written in a learning-oriented style, with the goal of understanding how the paper translates into working code rather than only reproducing results.
 
 ---
 
@@ -27,9 +29,31 @@ This repository currently contains a dedicated `word2vec/` folder with a from-sc
 
 ```bash
 nlp-paper-implementations/
+├── glove/
 ├── word2vec/
 └── README.md
 ```
+
+---
+
+## Implemented Projects
+
+### 1. Word2Vec
+
+The `word2vec/` folder contains a from-scratch PyTorch implementation of core Word2Vec ideas, including multiple training variants and supporting utilities for preprocessing, dataset creation, training, evaluation, and inference.
+
+### 2. GloVe
+
+The `glove/` folder contains a from-scratch PyTorch implementation of **GloVe (Global Vectors for Word Representation)** using:
+
+- co-occurrence based dataset construction
+- distance-weighted context counting
+- separate word and context embedding matrices
+- separate bias terms
+- weighted least-squares training objective
+- similarity-based inference from learned embeddings
+
+---
 
 ## Why This Repository Exists
 
@@ -57,11 +81,36 @@ This repository is especially useful for:
 
 ---
 
+## Project Style
+
+This repository is intentionally written in a **learning-first** style.
+
+That means the code is primarily designed to make the ideas clear and understandable, even when there are places where future refactoring, optimization, or better experiment tooling would improve the engineering quality.
+
+Where possible, each paper implementation is kept relatively self-contained so the project can be understood folder by folder.
+
+---
+
 ## Notes
 
-This is an actively growing repository.  
-At the current stage, **Word2Vec is the main implemented project**, and future paper implementations will be added incrementally.
+This is an actively growing repository.
 
-If you are looking for project-specific details, check the README inside the relevant folder, starting with:
+At the current stage:
 
-- [`word2vec/`](./word2vec/)
+- `word2vec/` and `glove/` are the main implemented projects
+- project-specific details should be documented inside each folder's own `README.md`
+- future implementations will be added incrementally as the repository grows
+
+If you are looking for project-specific details, start with:
+
+- `word2vec/`
+- `glove/`
+
+---
+
+
+## Final Note
+
+This repository is less about building a benchmark-ready library and more about building a strong, paper-level understanding of NLP models through implementation.
+
+As more papers are added, the repository will gradually become a larger collection of **paper-to-code NLP implementations**.
