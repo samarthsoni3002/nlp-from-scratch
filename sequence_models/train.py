@@ -22,8 +22,13 @@ from load_dataset import get_dataset
 from preprocessing import processing_batch, build_vocab, vocab_map
 from data_classes import SentiDataset, sentiment_collate_fn
 from models.rnn import RNNScratch
+from models.lstm import LSTM
+from models.gru import GRU
+
 from trainer import training_loop, testing_loop
 
+
+model = "gru"
 
 
 KEEP_WORDS = {
@@ -121,14 +126,42 @@ train_loader = DataLoader(train_dataset,batch_size=32,collate_fn=sentiment_colla
 val_loader = DataLoader(val_dataset,batch_size=32,collate_fn=sentiment_collate_fn,shuffle=True)
 test_loader = DataLoader(test_dataset,batch_size=32,collate_fn=sentiment_collate_fn,shuffle=False)
 
-model = RNNScratch(
-    vocab_size=len(vocab),
-    embed_dim=100,
-    num_hiddens=128,
-    output_size=2,
-    pad_idx=0
-)
 
+if model == "rnn":
+    
+    print("-- RNN -- ")
+    
+    model = RNNScratch(
+        vocab_size=len(vocab),
+        embed_dim=100,
+        num_hiddens=128,
+        output_size=2,
+        pad_idx=0
+)
+elif model == "lstm":
+    
+    print("-- LSTM --")
+    
+    model = LSTM(
+        hidden_size = 128,
+        output_size = 2,
+        vocab_size = len(vocab),
+        embed_dim = 100,
+        pad_idx=0
+    )
+    
+elif model == "gru":
+    
+    print("-- GRU --")
+    
+    model = GRU(
+    hidden_size = 128,
+    output_size = 2,
+    vocab_size = len(vocab),
+    embed_dim = 100,
+    pad_idx=0
+    )
+    
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
