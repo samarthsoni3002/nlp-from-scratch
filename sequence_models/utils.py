@@ -1,6 +1,6 @@
 def expand_contractions(text, contractions):
 
-  for contractions, expanded in contractions.items():
-    text = text.replace(contractions, expanded)
+    for contraction, expanded in contractions.items():
+        text = text.replace(contraction, expanded)
 
-  return text
+    return text
