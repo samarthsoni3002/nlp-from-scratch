@@ -1,4 +1,4 @@
-# NLP Paper Implementations
+# NLP From Scratch
 
 This repository is where I implement core **NLP papers and foundational ideas from scratch** to understand both the theory and the engineering behind them.
 
