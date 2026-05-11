@@ -6,7 +6,7 @@ from torch import optim
 
 from datasets_classes import TranslationDataset, translation_collate_fn
 from models import Encoder, Decoder, Model
-from utils import create_data
+from utils import create_data, translate_sentence
 from preprocessing import basic_preprocessing, build_vocab, vocab_map
 from trainer import train
 
@@ -66,3 +66,16 @@ for epoch in range(num_epochs):
     print(f"Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f}")
     
 print("Training Finished")
+
+translation = translate_sentence(
+    sentence="i am cold .",
+    model=model,
+    vocab_eng=vocab_eng,
+    vocab_fr=vocab_fr,
+    id_to_word_fr=id_to_word_fr,
+    preprocess_fn=basic_preprocessing,
+    device=device,
+    max_len=30
+)
+
+print(translation)
