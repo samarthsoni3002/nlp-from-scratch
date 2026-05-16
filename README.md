@@ -164,34 +164,6 @@ This is the baseline before adding attention.
 
 ---
 
-## Setup
-
-Create a virtual environment and install the core dependencies:
-
-```bash
-pip install torch datasets nltk
-```
-
-Some folders may have their own `requirements.txt` or additional notes. Check the README inside each project folder before running that implementation.
-
----
-
-## How to Run
-
-From the repository root:
-
-```bash
-python sequence_models/train.py
-```
-
-```bash
-python seq2seq/vanilla-encoder-decoder/train.py
-```
-
-For Word2Vec and GloVe, check the folder-specific READMEs because they include more details about training configuration, checkpoints, and inference scripts.
-
----
-
 ## Project Style
 
 This repository is intentionally written in a **learning-first** style.
