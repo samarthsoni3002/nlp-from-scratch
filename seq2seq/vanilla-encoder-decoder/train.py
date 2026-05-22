@@ -7,8 +7,9 @@ from torch import optim
 from datasets_classes import TranslationDataset, translation_collate_fn
 from models import Encoder, Decoder, Model
 from utils import create_data, translate_sentence
-from preprocessing import basic_preprocessing, build_vocab, vocab_map
+from preprocessing import basic_preprocessing, filter_pairs, build_vocab, vocab_map
 from trainer import train
+from inference import translate_sentence
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -17,23 +18,28 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 file_path = "seq2seq/vanilla-encoder-decoder/eng-fra.txt"
 
 num_epochs = 10
+embed_dim = 128
+hidden_dim = 256
 
 X,y = create_data(file_path)
 
 print("Data Created Successfully!")
 
-X_tokens = basic_preprocessing(X)
-y_tokens = basic_preprocessing(y)
+X_tokens = basic_preprocessing(X)["tokens"]
+y_tokens = basic_preprocessing(y)["tokens"]
 
-X_tokens = [tokens + ["<EOS>"] for tokens in X_tokens["tokens"]]
+X_tokens, y_tokens = filter_pairs(X_tokens, y_tokens)
 
-y_tokens = [["<SOS>"] + tokens + ["<EOS>"] for tokens in y_tokens["tokens"]]
+X_tokens = [tokens + ["<EOS>"] for tokens in X_tokens]
+
+y_tokens = [["<SOS>"] + tokens + ["<EOS>"] for tokens in y_tokens]
 
 print("Basic preprocessing done successfully!")
 
 SPECIAL_TOKENS = ["<PAD>", "<SOS>", "<EOS>", "<UNK>"]
 
-vocab_eng, vocab_fr, id_to_word_eng, id_to_word_fr, counter_eng, counter_fr = build_vocab(X_tokens,y_tokens,SPECIAL_TOKENS)
+vocab_eng, id_to_word_eng, counter_eng = build_vocab(X_tokens, SPECIAL_TOKENS,min_freq=2)
+vocab_fr, id_to_word_fr, counter_fr = build_vocab(y_tokens, SPECIAL_TOKENS,min_freq=2)
 
 X_conv = vocab_map(X_tokens, vocab_eng)
 y_conv = vocab_map(y_tokens, vocab_fr)
@@ -45,14 +51,22 @@ translation_dataloader = DataLoader(translation_dataset,batch_size=32,collate_fn
 
 print("Dataloader created!")
 
-model = Model(Encoder(8,16,vocab_eng),Decoder(8,16,vocab_fr))
 
-criterion = nn.CrossEntropyLoss(ignore_index=0)
+
+model = Model(
+    Encoder(embed_dim, hidden_dim, len(vocab_eng), pad_idx=vocab_eng["<PAD>"]),
+    Decoder(embed_dim, hidden_dim, len(vocab_fr), pad_idx=vocab_fr["<PAD>"])
+)
+
+criterion = nn.CrossEntropyLoss(ignore_index=vocab_fr["<PAD>"])
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-pad_id = vocab_fr["<PAD>"]
 
 print("Starting Training!")
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+pad_id = vocab_fr["<PAD>"]
+
 
 for epoch in range(num_epochs):
     train_loss = train(
@@ -68,7 +82,7 @@ for epoch in range(num_epochs):
 print("Training Finished")
 
 translation = translate_sentence(
-    sentence="i am cold .",
+    sentence="I Love You",
     model=model,
     vocab_eng=vocab_eng,
     vocab_fr=vocab_fr,

@@ -4,8 +4,7 @@ from collections import Counter
 
 
 def basic_preprocessing(data):
-
-    token_pattern = re.compile(r"[^\W\d_]+|[^\w\s]", re.UNICODE)
+    token_pattern = re.compile(r"[^\W\d_]+|\d+|[^\w\s]", re.UNICODE)
     all_tokens = []
 
     for text in data:
@@ -13,56 +12,63 @@ def basic_preprocessing(data):
             all_tokens.append([])
             continue
 
-        text = unicodedata.normalize("NFC", text)
-        text = text.lower()
+        text = unicodedata.normalize("NFKC", text)
+        text = text.lower().strip()
+        text = re.sub(r"\s+", " ", text)
 
         tokens = token_pattern.findall(text)
+
+        tokens = ["<NUM>" if token.isdigit() else token for token in tokens]
+
         all_tokens.append(tokens)
 
-
     return {"tokens": all_tokens}
-
-
-def build_vocab(X_tokens,y_tokens,special_tokens):
-
   
+  
+def filter_pairs(src_tokens, tgt_tokens, max_src_len=12, max_tgt_len=14):
+    filtered_src = []
+    filtered_tgt = []
 
-  counter_eng = Counter()
-  counter_fr = Counter()
+    for src, tgt in zip(src_tokens, tgt_tokens):
+        if len(src) == 0 or len(tgt) == 0:
+            continue
 
-  for sent in X_tokens:
-    counter_eng.update(sent)
+        if len(src) > max_src_len or len(tgt) > max_tgt_len:
+            continue
 
-  for sent in y_tokens:
-    counter_fr.update(sent)
+        ratio = max(len(src) / len(tgt), len(tgt) / len(src))
+        if ratio > 2.5:
+            continue
 
+        filtered_src.append(src)
+        filtered_tgt.append(tgt)
 
-  vocab_eng = {token: idx for idx, token in enumerate(special_tokens)}
-  vocab_fr = {token: idx for idx, token in enumerate(special_tokens)}
-  id_to_word_eng = {}
-  id_to_word_fr = {}
-
-
-  idx = len(special_tokens)
-
-  for word,_ in counter_eng.items():
-
-    if word not in vocab_eng:
-      vocab_eng[word] = idx
-      id_to_word_eng[idx] = word
-      idx+=1
+    return filtered_src, filtered_tgt
 
 
-  idx = len(special_tokens)
+def build_vocab(tokenized_sentences, special_token, min_freq=2, max_size=None):
+    counter = Counter()
 
-  for word,freq in counter_fr.items():
+    for sent in tokenized_sentences:
+        counter.update(sent)
 
-    if word not in vocab_fr:
-      vocab_fr[word] = idx
-      id_to_word_fr[idx] = word
-      idx+=1
+    vocab = {tok: idx for idx, tok in enumerate(special_token)}
 
-  return vocab_eng, vocab_fr, id_to_word_eng, id_to_word_fr, counter_eng, counter_fr
+    words = counter.most_common()
+
+    if max_size is not None:
+        words = words[:max_size]
+
+    for word, freq in words:
+        if freq < min_freq:
+            continue
+
+        if word not in vocab:
+            vocab[word] = len(vocab)
+
+    id_to_word = {idx: word for word, idx in vocab.items()}
+
+    return vocab, id_to_word, counter
 
 
 def vocab_map(tokens, vocab):

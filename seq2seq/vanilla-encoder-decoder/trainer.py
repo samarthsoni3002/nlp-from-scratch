@@ -1,6 +1,6 @@
 import torch 
 
-def train_one_epoch(model, dataloader, optimizer, criterion, device):
+def train(model, dataloader, optimizer, criterion, device):
     model.train()
 
     total_loss = 0
@@ -10,7 +10,7 @@ def train_one_epoch(model, dataloader, optimizer, criterion, device):
         output_ids = output_ids.to(device)
         input_lengths = input_lengths.to(device)
 
-       
+
         predictions = model(input_ids, output_ids, input_lengths)
 
         decoder_target = output_ids[:, 1:]
