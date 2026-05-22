@@ -4,18 +4,18 @@ from torch import nn
 from torch.nn import functional as F
 from torch import optim
 
-from datasets_classes import TranslationDataset, translation_collate_fn
-from models import Encoder, Decoder, Model
-from utils import create_data, translate_sentence
-from preprocessing import basic_preprocessing, filter_pairs, build_vocab, vocab_map
-from trainer import train
-from inference import translate_sentence
+from seq2seq.datasets_classes import TranslationDataset, translation_collate_fn
+from seq2seq.vanilla_encoder_decoder.models import Encoder, Decoder, Model
+from seq2seq.utils import create_data, translate_sentence
+from seq2seq.preprocessing import basic_preprocessing, filter_pairs, build_vocab, vocab_map
+from seq2seq.vanilla_encoder_decoder.trainer import train
+from seq2seq.inference import translate_sentence
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-file_path = "seq2seq/vanilla-encoder-decoder/eng-fra.txt"
+file_path = "seq2seq/eng-fra.txt"
 
 num_epochs = 10
 embed_dim = 128
