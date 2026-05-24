@@ -1,6 +1,7 @@
 import torch 
 from torch import nn 
 from torch.nn import functional as F
+import numpy as np
 
 
 def positional_encoding(seq_len, d_model):
@@ -236,3 +237,5 @@ class Transformer(nn.Module):
         logits = self.fc_out(decoder_outputs)
 
         return logits
+    
+    
