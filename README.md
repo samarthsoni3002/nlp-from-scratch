@@ -4,11 +4,13 @@ A learning-first repository where I implement core NLP models, papers, and seque
 
 The goal of this repository is not to hide the important parts behind high-level libraries. The goal is to understand how NLP systems are actually built: preprocessing, vocabularies, datasets, batching, model equations, training loops, inference, and evaluation.
 
+This repo is intentionally written as a **paper-to-code / concept-to-code learning repo**. The implementations favor explicit tensor flows and readable training logic over heavy abstraction.
+
 ---
 
 ## Repository Goal
 
-This repo is my running collection of **paper-to-code** and **concept-to-code** NLP implementations.
+This repo is my running collection of NLP implementations from first principles.
 
 Each folder focuses on one model family or paper idea and tries to answer:
 
@@ -19,18 +21,19 @@ Each folder focuses on one model family or paper idea and tries to answer:
 - How does training actually happen?
 - How can the learned model be inspected or used?
 
-This is written in a learning-oriented style, so the code is intentionally explicit and easy to trace.
-
 ---
 
 ## Current Implementations
 
-| Folder | Topic | Status |
+| Folder | Topic | Current Status |
 |---|---|---|
 | `word2vec/` | Word2Vec from scratch | Skip-gram, CBOW, negative sampling, checkpointing, inference |
 | `glove/` | GloVe from scratch | Co-occurrence construction, weighted least-squares objective, inference |
-| `sequence_models/` | RNN, LSTM, GRU from scratch | Sentiment classification on IMDB with manually implemented recurrent cells |
-| `seq2seq/vanilla-encoder-decoder/` | Vanilla encoder-decoder | LSTM-based English-to-French sequence-to-sequence translation baseline |
+| `sequence_models/` | RNN, LSTM, GRU from scratch | IMDB sentiment classification with manually implemented recurrent cells |
+| `seq2seq/vanilla_encoder_decoder/` | Vanilla encoder-decoder | LSTM English-to-French translation baseline |
+| `seq2seq/bahdanau_attention/` | Additive attention | Encoder-decoder with Bahdanau-style attention over encoder states |
+| `seq2seq/luong_attention/` | Multiplicative attention | Encoder-decoder with Luong-style dot-product attention |
+| `seq2seq/transformer_attention/` | Transformer attention | Single-layer Transformer-style encoder-decoder with multi-head attention |
 
 ---
 
@@ -41,50 +44,35 @@ nlp-from-scratch/
 ├── README.md
 │
 ├── word2vec/
-│   ├── README.md
-│   ├── load_dataset.py
-│   ├── preprocessing.py
-│   ├── datasets_classes.py
-│   ├── models.py
-│   ├── trainer.py
-│   ├── utils.py
-│   ├── train.py
-│   └── inference.py
-│
 ├── glove/
-│   ├── README.md
-│   ├── load_dataset.py
-│   ├── preprocessing.py
-│   ├── datasets_classes.py
-│   ├── models.py
-│   ├── trainer.py
-│   ├── utils.py
-│   ├── train.py
-│   └── inference.py
-│
 ├── sequence_models/
-│   ├── README.md
-│   ├── load_dataset.py
-│   ├── preprocessing.py
-│   ├── data_classes.py
-│   ├── trainer.py
-│   ├── utils.py
-│   ├── train.py
-│   └── models/
-│       ├── rnn.py
-│       ├── lstm.py
-│       └── gru.py
-│
 └── seq2seq/
-    └── vanilla-encoder-decoder/
+    ├── README.md
+    ├── eng-fra.txt
+    ├── datasets_classes.py
+    ├── preprocessing.py
+    ├── utils.py
+    ├── inference.py
+    ├── vanilla_encoder_decoder/
+    │   ├── README.md
+    │   ├── models.py
+    │   ├── trainer.py
+    │   └── train.py
+    ├── bahdanau_attention/
+    │   ├── README.md
+    │   ├── models.py
+    │   ├── trainer.py
+    │   └── train.py
+    ├── luong_attention/
+    │   ├── README.md
+    │   ├── models.py
+    │   ├── trainer.py
+    │   └── train.py
+    └── transformer_attention/
         ├── README.md
-        ├── datasets_classes.py
-        ├── preprocessing.py
         ├── models.py
         ├── trainer.py
-        ├── utils.py
-        ├── train.py
-        └── eng-fra.txt
+        └── train.py
 ```
 
 ---
@@ -110,16 +98,7 @@ The implementation includes preprocessing, vocabulary construction, custom datas
 
 The `glove/` folder implements **GloVe: Global Vectors for Word Representation**.
 
-The implementation includes:
-
-- corpus preprocessing
-- vocabulary construction
-- word-word co-occurrence pair generation
-- distance-weighted co-occurrence counting
-- separate word and context embeddings
-- separate bias terms
-- weighted least-squares GloVe objective
-- inference using combined word and context vectors
+The implementation includes corpus preprocessing, vocabulary construction, word-word co-occurrence generation, distance-weighted co-occurrence counting, separate word/context embeddings, separate bias terms, weighted least-squares loss, and nearest-neighbor inference.
 
 ---
 
@@ -133,7 +112,7 @@ Implemented models:
 - LSTM
 - GRU
 
-The recurrent cells are manually implemented using `nn.Parameter` tensors instead of directly using `nn.RNN`, `nn.LSTM`, or `nn.GRU`. This makes the gate mechanics and hidden-state updates visible.
+The recurrent cells are manually implemented using `nn.Parameter` tensors instead of directly using `nn.RNN`, `nn.LSTM`, or `nn.GRU`. This keeps the gate equations and hidden-state updates visible.
 
 Current task:
 
@@ -141,26 +120,16 @@ Current task:
 
 ---
 
-### 4. Vanilla Encoder-Decoder
+### 4. Seq2Seq Models
 
-The `seq2seq/vanilla-encoder-decoder/` folder implements a basic LSTM encoder-decoder model for machine translation.
+The `seq2seq/` folder builds a progression of English-to-French translation models:
 
-Current task:
+1. **Vanilla encoder-decoder** — compresses the source sentence into final LSTM hidden/cell states.
+2. **Bahdanau attention** — lets the decoder attend over all encoder outputs before generating each target token.
+3. **Luong attention** — computes attention after the decoder state is produced using dot-product scoring.
+4. **Transformer attention** — replaces recurrence with positional encodings, self-attention, cross-attention, residual connections, layer normalization, and feed-forward blocks.
 
-- English-to-French translation using tab-separated sentence pairs
-
-The implementation includes:
-
-- source and target preprocessing
-- source and target vocabulary creation
-- `<SOS>`, `<EOS>`, `<PAD>`, and `<UNK>` tokens
-- LSTM encoder
-- LSTM decoder
-- teacher-forced decoder input shifting
-- cross-entropy loss with padding ignored
-- greedy decoding inference
-
-This is the baseline before adding attention.
+This section is designed to show the historical path from recurrent encoder-decoder models to attention-based models and then Transformer-style architectures.
 
 ---
 
@@ -181,21 +150,36 @@ This is not meant to be a polished NLP library. It is meant to be a deep learnin
 
 ---
 
-
 ## Current Limitations
 
 The repository is still evolving. Some current limitations are:
 
 - many hyperparameters are still hardcoded inside `train.py`
 - not every implementation has checkpointing yet
-- evaluation is still simple in some folders
+- evaluation is simple in some folders
 - no unified CLI interface yet
 - no global experiment tracking yet
 - no shared configuration system yet
+- seq2seq inference is still being unified across vanilla, attention, and Transformer variants
 - code is optimized for learning clarity more than speed
 
 ---
 
+## Roadmap
+
+Planned improvements:
+
+- [ ] Add CLI/config support for experiments
+- [ ] Add seed control and reproducibility utilities
+- [ ] Add checkpointing consistently across folders
+- [ ] Add training/validation plots
+- [ ] Add better evaluation metrics such as accuracy, F1, BLEU, and embedding analogy tests
+- [ ] Add cleaner experiment organization
+- [ ] Add attention visualization for seq2seq models
+- [ ] Expand Transformer implementation toward the full paper architecture
+- [ ] Add stronger README examples after each implementation stabilizes
+
+---
 
 ## Why This Repository Exists
 
